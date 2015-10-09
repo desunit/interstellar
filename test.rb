@@ -15,7 +15,7 @@ class Slack
   def self.notify(message)
     RestClient.post CONFIG["slack_url"], {
       payload:
-      { text: message }.to_json
+      { attachments: message }.to_json
     },
     content_type: :json,
     accept: :json
@@ -36,19 +36,21 @@ class Review
   end
 
   def self.send_reviews_from_date(date)
-    collection.select do |r|
+    attachments = collection.select do |r|
       r.submitted_at > date && (r.title || r.text)
     end.sort_by do |r|
       r.submitted_at
-    end.each {|r| Slack.sendPayload(r.build_payload)}
+    end.map do |r|
+		r.build_attachment
+	end
 
-=begin
-    if message != ""
-      Slack.notify(message)
-    else
+
+	if attachments.empty?
       print "No new reviews\n"
+    else
+      Slack.notify(attachments)
     end
-=end
+
   end
   
   def self.send_single_reviews_from_date(date)
@@ -108,7 +110,7 @@ class Review
     ].join("\n")
   end
   
-  def build_payload
+  def build_attachment
 	color = if self.rate > 3
 				"good"
 			elsif self.rate = 3
@@ -131,13 +133,10 @@ class Review
       "<#{url}|Google play>"
     ].join("\n")
 	attachment = {}
+	attachment['fallback'] = self.title,
 	attachment['title'] = self.title
 	attachment['color'] = color
 	attachment['text'] = text
-	attachments = [attachment]
-	payload = {}
-	payload['attachments'] = attachments
-	print payload.to_json
   end
 end
 
