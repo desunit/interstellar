@@ -1,4 +1,4 @@
-require 'rest-client'
+#require 'rest-client'
 require 'json'
 require 'date'
 require 'csv'
@@ -13,15 +13,12 @@ csv_file_name = "reviews_#{CONFIG["package_name"]}_#{file_date}.csv"
 
 class Slack
   def self.notify(message)
-    print {
-      payload:
-      { text: 'You have ' + message.length.to_s + ' new Android reviews',
-	  attachments: message }.to_json
-    }
+    payload1 = {}
+	payload1["text"] = 'You have ' + message.length.to_s + ' new Android reviews'
+	payload1["attachments"] = message
+	print payload1.to_json
 	RestClient.post CONFIG["slack_url"], {
-      payload:
-      { text: 'You have ' + message.length.to_s + ' new Android reviews',
-	  attachments: message }.to_json
+      payload: payload1.to_json
     },
     content_type: :json,
     accept: :json
@@ -50,29 +47,10 @@ class Review
 		r.build_attachment
 	end
 
-
 	if attachments.empty?
       print "No new reviews\n"
     else
       Slack.notify(attachments)
-    end
-
-  end
-  
-  def self.send_single_reviews_from_date(date)
-	message = collection.select do |r|
-      r.submitted_at > date && (r.title || r.text)
-    end.sort_by do |r|
-      r.submitted_at
-    end.map do |r|
-      r.build_message
-    end.join("\n")
-
-
-    if message != ""
-      Slack.notify(message)
-    else
-      print "No new reviews\n"
     end
   end
 
@@ -80,7 +58,7 @@ class Review
 
   def initialize data = {}
     @text = data[:text] ? data[:text].to_s.encode("utf-8") : nil
-    @title = data[:title] ? "*#{data[:title].to_s.encode("utf-8")}*\n" : nil
+    @title = data[:title] ? "*#{data[:title].to_s.encode("utf-8")}" : nil
 
     @submitted_at = DateTime.parse(data[:submitted_at].encode("utf-8"))
     @original_subitted_at = DateTime.parse(data[:original_subitted_at].encode("utf-8"))
@@ -139,10 +117,15 @@ class Review
       "<#{url}|Google play>"
     ].join("\n")
 	attachment = {}
-	attachment['fallback'] = self.title,
+	attachment['fallback'] = if self.title.nil?
+								"Android review"
+							else 
+								self.title
+							end
 	attachment['title'] = self.title
 	attachment['color'] = color
 	attachment['text'] = text
+	return attachment
   end
 end
 
