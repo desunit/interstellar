@@ -48,7 +48,7 @@ class Review
 	if attachments.empty?
       print "No new reviews\n"
     else
-      Slack.notify(message)
+      Slack.notify(attachments)
     end
 
   end
