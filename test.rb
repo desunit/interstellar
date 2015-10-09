@@ -6,7 +6,7 @@ require 'yaml'
 
 CONFIG = YAML.load_file('./secrets/secrets.yml')
 
-date = Date.today-5
+date = Date.today-2
 
 file_date = date.strftime("%Y%m")
 csv_file_name = "reviews_#{CONFIG["package_name"]}_#{file_date}.csv"
@@ -15,6 +15,7 @@ class Slack
   def self.notify(message)
     payload1 = {}
 	payload1["text"] = 'You have ' + message.length.to_s + ' new Android reviews'
+	payload1["unfurl_links"] = true
 	payload1["attachments"] = message
 	print payload1.to_json
 	RestClient.post CONFIG["slack_url"], {
