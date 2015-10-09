@@ -15,7 +15,8 @@ class Slack
   def self.notify(message)
     RestClient.post CONFIG["slack_url"], {
       payload:
-      { attachments: message }.to_json
+      { text: 'You have ' + message.length + ' new Android reviews',
+	  attachments: message }.to_json
     },
     content_type: :json,
     accept: :json
