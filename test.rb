@@ -1,4 +1,4 @@
-#require 'rest-client'
+require 'rest-client'
 require 'json'
 require 'date'
 require 'csv'
@@ -11,13 +11,15 @@ date = Date.today-2
 file_date = date.strftime("%Y%m")
 csv_file_name = "reviews_#{CONFIG["package_name"]}_#{file_date}.csv"
 
+system "BOTO_PATH=./secrets/.boto gsutil/gsutil cp -r gs://#{CONFIG["app_repo"]}/reviews/#{csv_file_name} ."
+
 class Slack
   def self.notify(message)
     payload1 = {}
 	payload1["text"] = 'You have ' + message.length.to_s + ' new Android reviews'
 	payload1["unfurl_links"] = true
+	payload1["unfurl_media"] = true
 	payload1["attachments"] = message
-	print payload1.to_json
 	RestClient.post CONFIG["slack_url"], {
       payload: payload1.to_json
     },
