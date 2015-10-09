@@ -13,7 +13,12 @@ csv_file_name = "reviews_#{CONFIG["package_name"]}_#{file_date}.csv"
 
 class Slack
   def self.notify(message)
-    RestClient.post CONFIG["slack_url"], {
+    print {
+      payload:
+      { text: 'You have ' + message.length.to_s + ' new Android reviews',
+	  attachments: message }.to_json
+    }
+	RestClient.post CONFIG["slack_url"], {
       payload:
       { text: 'You have ' + message.length.to_s + ' new Android reviews',
 	  attachments: message }.to_json
