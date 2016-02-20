@@ -93,7 +93,7 @@ class Review
              "posted: #{submitted_at.strftime("%m.%d.%Y at %I:%M%p")}"
            end
 
-    stars = rate.times.map{"*"}.join + (5 - rate).times.map{"-"}.join
+    stars = rate.times.map{"\u2605"}.join + (5 - rate).times.map{"\u2729"}.join
 
     [
       "\n\n#{stars}",
@@ -117,7 +117,7 @@ class Review
              "posted: #{submitted_at.strftime("%m.%d.%Y at %I:%M%p")}"
            end
 
-    stars = rate.times.map{"*"}.join + (5 - rate).times.map{"-"}.join
+    stars = rate.times.map{"\u2605"}.join + (5 - rate).times.map{"\u2729"}.join
     attText = [
       "\n\n#{stars}",
       "Version: #{version_name} | #{date}",
