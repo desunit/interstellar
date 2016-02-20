@@ -7,7 +7,6 @@ require 'yaml'
 $stdout.reopen("out.txt", "w")
 $stderr.reopen("err.txt", "w")
 
-Dir.chdir('/Users/carsmobileapp/interstellar')
 CONFIG = YAML.load_file('./secrets/secrets.yml')
 
 date = Date.today-1
@@ -15,7 +14,8 @@ date = Date.today-1
 file_date = date.strftime("%Y%m")
 csv_file_name = "reviews_#{CONFIG["package_name"]}_#{file_date}.csv"
 
-system "BOTO_PATH=./secrets/.boto gsutil/gsutil cp -r gs://#{CONFIG["app_repo"]}/reviews/#{csv_file_name} ."
+o = `BOTO_PATH=./secrets/.boto && ./gsutil/gsutil cp -r gs://#{CONFIG["app_repo"]}/reviews/#{csv_file_name} .`
+p o
 
 class Slack
   def self.notify(message)
@@ -93,7 +93,7 @@ class Review
              "posted: #{submitted_at.strftime("%m.%d.%Y at %I:%M%p")}"
            end
 
-    stars = rate.times.map{"★"}.join + (5 - rate).times.map{"☆"}.join
+    stars = rate.times.map{"*"}.join + (5 - rate).times.map{"-"}.join
 
     [
       "\n\n#{stars}",
@@ -117,7 +117,7 @@ class Review
              "posted: #{submitted_at.strftime("%m.%d.%Y at %I:%M%p")}"
            end
 
-    stars = rate.times.map{"★"}.join + (5 - rate).times.map{"☆"}.join
+    stars = rate.times.map{"*"}.join + (5 - rate).times.map{"-"}.join
     attText = [
       "\n\n#{stars}",
       "Version: #{version_name} | #{date}",
