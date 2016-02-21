@@ -15,7 +15,6 @@ file_date = date.strftime("%Y%m")
 csv_file_name = "reviews_#{CONFIG["package_name"]}_#{file_date}.csv"
 
 o = `BOTO_PATH=./secrets/.boto && ./gsutil/gsutil cp -r gs://#{CONFIG["app_repo"]}/reviews/#{csv_file_name} .`
-p o
 
 class Slack
   def self.notify(message)
@@ -60,6 +59,8 @@ class Review
     else
       Slack.notify(attachments)
     end
+
+    File.open("last_record", 'w') { |file| file.write(collection[-1].submitted_at.to_s) }
   end
 
   attr_accessor :text, :title, :submitted_at, :original_subitted_at, :rate, :device, :url, :version, :edited, :version_name
@@ -79,13 +80,6 @@ class Review
     @edited = data[:edited]
   end
 
-  def notify_to_slack
-    if text || title
-      message = "*Rating: #{rate}* | version: #{version_name} | posted: #{submitted_at}\n #{[title, text].join(" ")}\n <#{url}|Google play>"
-      Slack.notify(message)
-    end
-  end
-
   def build_message
     date = if edited
              "posted: #{original_subitted_at.strftime("%m.%d.%Y at %I:%M%p")}, edited: #{submitted_at.strftime("%m.%d.%Y at %I:%M%p")}"
@@ -93,7 +87,7 @@ class Review
              "posted: #{submitted_at.strftime("%m.%d.%Y at %I:%M%p")}"
            end
 
-    stars = rate.times.map{"*"}.join + (5 - rate).times.map{"-"}.join
+    stars = rate.times.map{"\u2605"}.join + (5 - rate).times.map{"\u2729"}.join
 
     [
       "\n\n#{stars}",
@@ -117,7 +111,7 @@ class Review
              "posted: #{submitted_at.strftime("%m.%d.%Y at %I:%M%p")}"
            end
 
-    stars = rate.times.map{"*"}.join + (5 - rate).times.map{"-"}.join
+    stars = rate.times.map{"\u2605"}.join + (5 - rate).times.map{"\u2729"}.join
     attText = [
       "\n\n#{stars}",
       "Version: #{version_name} | #{date}",
@@ -156,5 +150,11 @@ CSV.foreach(csv_file_name, encoding: 'bom|utf-16le', headers: true) do |row|
   end
 end
 
+if File.exist?("last_record")
+    File.open("last_record", 'r') { |file| date = DateTime.parse(file.read()) }
+else
+    date = Date.today-10
+end
 Review.send_reviews_from_date(date)
+File.delete csv_file_name
 print "Script ran #{Date.today}\n"
